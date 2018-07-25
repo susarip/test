@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(shinythemes)
 library(dplyr)
 library(ggplot2)
 library(ggthemes)
@@ -20,6 +21,7 @@ ks_clean$launched <- as.Date(ks_clean$launched)
 # Define UI for application that draws a histogram
 ui <-
   navbarPage("Navigation",
+             theme = shinytheme("darkly"),
              tabPanel("Home",
                       # App title ----
                       titlePanel("A Study of Kickstarter Projects"),
@@ -124,10 +126,15 @@ server <- function(input, output) {
                 timediff = deadline-launched,
                 percent = usd_pledged_real/usd_goal_real) %>%
       arrange(timediff)
-    g_TvsGoal <- ggplot(ks_TvsGoal,aes(timediff,percent))
-    g_TvsGoal + geom_point() + coord_cartesian(xlim = c(0,input$xmaxtime), ylim = c(0,input$ymaxtime)) +
+    ks_timeavg <- ks_TvsGoal %>%
+      group_by(timediff) %>%
+      summarise(avg = mean(percent))
+    g_TvsGoal <- ggplot()
+    g_TvsGoal + geom_point(data = ks_TvsGoal,aes(timediff,percent)) +
+      geom_line(data = ks_timeavg, aes(timediff,avg)) +
+      coord_cartesian(xlim = c(0,input$xmaxtime), ylim = c(0,input$ymaxtime)) +
       scale_x_continuous() +
-      labs(title = "Money collected v. Open Time of Project", x = "Time Difference (days)", y = "Percentage of Goal Raised")
+      labs(title = paste("Money collected v. Open Time of Project for ",input$inCat), x = "Time Difference (days)", y = "Percentage of Goal Raised")
   })
   
   output$statusPlot <- renderPlot({
