@@ -1,8 +1,7 @@
 
 from scrapy import Spider, Request
 from hanjie_scraper.items import HanjieScraperItem
-from scrapy.spiders import CrawlSpider, Rule
-from scrapy.linkextractors import LinkExtractor
+
 
 
 class HanjieScraper(Spider):
@@ -18,17 +17,17 @@ class HanjieScraper(Spider):
 
 		# Yield the requests to different search result urls,
 		# using parse_result_page function to parse the response.
-		for url in result_urls[:1]:
+		for url in page_urls:
 			yield Request(url=url, callback=self.parse_pages)
 
 	def parse_pages(self,response):
-		item_links = response.xpath('//a[@class = "nonogram_title"]/@href').extract()
-		for a in item_links:
-			yield Request(a, callback=self.parse_puzzles)
+		puzzle_links = response.xpath('//a[@class = "nonogram_title"]/@href').extract()
+		for puzzle in puzzle_links:
+			yield Request(puzzle, callback=self.parse_puzzles)
 
 	def parse_puzzles(self,response):
-		title = response.xpath('/html/head/title/text()').extract_first()[37:-2]
-		sizeText = response.xpath('//div[@class = "content"]/table//tr/td[1]/text()').extract()
+		title = response.xpath('/html/head/title/text()').extract_first()[36:-1]
+		sizeText = response.xpath('//div[@class = "content"]/table//tr/td[1]/text()').extract_first()
 		size = sizeText[6:].split('x')
 		sizeRow = size[0]
 		sizeCol = size[1]
@@ -38,7 +37,7 @@ class HanjieScraper(Spider):
 		solution = response.xpath('//div[@class = "content"]/a[@class = "lightbox"]/@href').extract_first()
 
 
-		item = ZocdocItem()
+		item = HanjieScraperItem()
 		item['title'] = title
 		item['sizeRow'] = sizeRow
 		item['sizeCol'] = sizeCol
