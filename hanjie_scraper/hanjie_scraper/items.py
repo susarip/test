@@ -11,6 +11,7 @@ from scrapy import Field
 class HanjieScraperItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
+    number = Field()
     title = Field()
     sizeRow = Field()
     sizeCol = Field()
